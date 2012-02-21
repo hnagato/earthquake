@@ -6,7 +6,7 @@ slop = Slop.new(:strict => true, :help => true)
 slop.banner "Usage: earthquake [options] [directory]"
 slop.on :d, :debug, 'Enable debug mode'
 slop.on :n, :'no-logo', 'No Logo'
-slop.on :c, :command, "Invoke a command and exit", true
+slop.on :c, :command=, "Invoke a command and exit", true
 slop.on :l, :lolize, 'enable lolize (see: https://github.com/miaout17/lolize)'
 begin
   slop.parse!(argv)
@@ -14,6 +14,9 @@ rescue => e
   puts e
   exit!
 end
+
+exit if slop.present?(:help)
+
 options = slop.to_hash
 options.delete(:help)
 options[:dir] = argv.shift unless argv.empty?
@@ -24,9 +27,10 @@ eq_dir = Pathname.new(__FILE__).realpath.parent.parent
 $:.unshift eq_dir.join('lib') if $0 == __FILE__
 
 command = options.delete(:command)
-no_logo = options.delete(:'no-logo')
+no_logo = slop.present?(:'no-logo')
+lolize  = slop.present?(:lolize)
 
-require 'lolize/auto' if options[:lolize]
+require 'lolize/auto' if lolize
 
 if !no_logo && !command
   print "\e[31m"
